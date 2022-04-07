@@ -1,0 +1,301 @@
+#!/bin/bash
+
+echo "Type 'Yes' If you want to read from file OR 'anything else' to continue: "
+
+read choice
+
+choice=`echo $choice | tr [A-Z] [a-z]`
+
+
+if [ "$choice" == yes ]
+
+then
+echo "Please Enter The File Name: "
+read filename
+
+if [ -z "$filename" ]
+then
+echo "file does not exist"
+exit 0
+fi
+
+exec < $filename
+
+#file=`cat $filename`
+
+while read input
+do
+
+case "$input"
+in
++ ) stack+=($input);;
+s ) stack+=($input);;
+e )
+numarray=${#stack[@]}
+
+if [ $numarray -lt 3 ]
+then
+echo "There is less than 3 inputs in the file"
+exit 0
+fi
+if [[ ${stack[-3]} =~ ^[0-9]+$ ]]
+then
+if [[ ${stack[-2]} =~ ^[0-9]+$ ]]
+then
+saveOperation=(${stack[-3]} ${stack[-2]})
+else
+echo "you can't do an operation with none integers inputs"
+exit 0
+fi
+fi
+
+lastIndexOnStack=${stack[-1]}
+stack+=($input)
+echo "${stack[@]}"
+
+case "$lastIndexOnStack"
+in
++ )
+sum=$(expr ${stack[-3]} + ${stack[-4]})
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+stack+=($sum)
+#echo ${stack[@]}
+;;
+
+\& )
+and=$(( ${stack[-3]}&${stack[-4]} ))
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+stack+=($and)
+#echo ${stack[@]}
+;;
+
+\| )
+or=$(( ${stack[-3]}|${stack[-4]} ))
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+stack+=($or)
+;;
+
+\^ )
+xor=$(( ${stack[-3]}^${stack[-4]} ))
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+stack+=($xor)
+echo ${stack[@]}
+;;
+
+s )
+lastElement=${stack[-3]}
+stack[-3]=${stack[-4]}
+stack[-4]=$lastElement
+unset stack[-1]
+unset stack[-1]
+;;
+d )
+unset stack[-1]
+unset stack[-1]
+ ;;
+* ) unset stack[-1] ;;
+esac
+
+;;
+p ) stack+=($input)
+echo "${stack[@]}"
+unset stack[-1];;
+d ) stack+=($input)
+echo "${stack[@]}"
+unset stack[-1]
+lastIndexOnStack=${stack[-1]}
+unset stack[-1]
+;;
+x ) stack+=($input)
+echo "${stack[@]}"
+exit 1
+;;
+\& ) stack+=($input);;
+\| ) stack+=($input);;
+\^ ) stack+=($input);;
+* ) if [[ "$input" =~ ^[0-9]+$ ]]
+then
+stack+=($input)
+else
+echo "wrong operation read from the file"
+exit 0
+fi;;
+esac
+done
+
+exit 1
+fi
+
+stack=()
+#############################################################################################
+
+echo "Enter the first integer to the stack"
+printf "> "
+while read input
+do
+
+input=`echo $input | tr [A-Z] [a-z]`
+
+
+case "$input"
+in
++ ) stack+=($input);;
+s ) stack+=($input);;
+e )
+
+numarray=${#stack[@]}
+if [ $numarray -lt 3 ]
+then
+echo "There is less than 3 inputs in the file"
+printf "> "
+continue
+fi
+
+if [[ ${stack[-3]} =~ ^[0-9]+$ ]]
+then
+if [[ ${stack[-2]} =~ ^[0-9]+$ ]]
+then
+saveOperation=(${stack[-3]} ${stack[-2]})
+else
+echo "you can't do an operation with none integers inputs"
+printf "> "
+continue
+fi
+fi
+
+saveOperation=(${stack[-3]} ${stack[-2]})
+lastIndexOnStack=${stack[-1]}
+stack+=($input)
+echo "${stack[@]}"
+
+case "$lastIndexOnStack"
+in
+
++ )
+sum=$(expr ${stack[-3]} + ${stack[-4]})
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+stack+=($sum)
+echo ${stack[@]}
+;;
+\& )
+and=$(( ${stack[-3]}&${stack[-4]} ))
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+stack+=($and)
+echo ${stack[@]}
+;;
+
+\| )
+or=$(( ${stack[-3]}|${stack[-4]} ))
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+stack+=($or)
+echo ${stack[@]}
+;;
+
+\^ )
+xor=$(( ${stack[-3]}^${stack[-4]} ))
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+unset stack[-1]
+stack+=($xor)
+echo ${stack[@]}
+;;
+
+s )
+lastElement=${stack[-3]}
+stack[-3]=${stack[-4]}
+stack[-4]=$lastElement
+unset stack[-1]
+unset stack[-1]
+;;
+d )
+unset stack[-1]
+unset stack[-1]
+;;
+* ) unset stack[-1] ;;
+esac
+
+;;
+p ) stack+=($input)
+echo "${stack[@]}"
+unset stack[-1];;
+d ) stack+=($input)
+echo "${stack[@]}"
+unset stack[-1]
+lastIndexOnStack=${stack[-1]}
+unset stack[-1]
+;;
+x ) stack+=($input)
+echo "${stack[@]}"
+exit 1
+;;
+u )
+
+case "$lastIndexOnStack"
+in
++ )
+unset stack[-1]
+stack+=(${saveOperation[0]})
+stack+=(${saveOperation[1]})
+stack+=($lastIndexOnStack)
+;;
+\& )
+unset stack[-1]
+stack+=(${saveOperation[0]})
+stack+=(${saveOperation[1]})
+stack+=($lastIndexOnStack)
+;;
+\^ )
+unset stack[-1]
+stack+=(${saveOperation[0]})
+stack+=(${saveOperation[1]})
+stack+=($lastIndexOnStack)
+;;
+\| )
+unset stack[-1]
+stack+=(${saveOperation[0]})
+stack+=(${saveOperation[1]})
+stack+=($lastIndexOnStack)
+;;
+s )
+lastElement=${stack[-1]}
+stack[-1]=${stack[-2]}
+stack[-2]=$lastElement;;
+d )stack+=($lastIndexOnStack);;
+* )stack+=($lastIndexOnStack);;
+esac
+;; ## end of excution
+
+\& ) stack+=($input);;
+\| ) stack+=($input);;
+\^ ) stack+=($input);;
+* ) if [[ "$input" =~ ^[0-9]+$ ]]
+then
+stack+=($input)
+else
+echo "you should enter an intger"
+fi;;
+esac
+printf "> "
+done

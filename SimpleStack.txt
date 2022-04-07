@@ -1,0 +1,458 @@
+#!/bin/bash
+
+#Maen Khdour 1171944
+
+
+echo "Type 'Yes' If you want to read from file OR 'anything else' to continue: "
+
+read choice #read variable enter the to read from file or not
+
+choice=`echo $choice | tr [A-Z] [a-z]` # make upper letter to small letter
+
+#if statment to check if read yes to read from file
+if [ "$choice" = yes ]
+then
+echo "Please Enter The File Name: "
+read filename #read name file
+
+#if not read from file
+if [ ! -f "$filename" ]
+then
+echo "file does not exist"
+exit 0
+fi
+exec < $filename #make the execution from file instead of terminal
+
+#start reading from file 
+while read input
+do
+#case for what we read 
+case "$input"
+
+in
++ ) stack+=($input);; # push in satck
+s ) stack+=($input);;
+e )
+numarray=${#stack[@]} #number of elemnt in satck
+# check if the element on the stack is 1 or less stack empty
+if [ $numarray -lt 1 ]
+then
+echo " Can't execute the stack is empty"
+exit 0
+fi
+if [ $numarray -lt 3 ] # if the number of element in the stack is less than 3 to check the mathmatical operation work or not
+then
+mathOperation=false #boolean
+
+else
+# check if we read integer in the last two input before the operation if integer or not
+if [[ ${stack[-3]} =~ ^[0-9]+$ ]]
+then
+if [[ ${stack[-2]} =~ ^[0-9]+$ ]]
+then
+saveOperation=(${stack[-3]} ${stack[-2]}) # save integers in the stack
+
+mathOperation=true #boolean to check if we can do mathmatical operation 
+else
+mathOperation=false
+fi
+else
+mathOperation=false
+fi
+saveOperation=(${stack[-3]} ${stack[-2]}) # save integers in the stack
+fi 
+lastIndexOnStack=${stack[-1]} #save the last index of stack (operation)
+stack+=($input) #push e (execution to the stack)
+
+#case for the last index (operation)
+case "$lastIndexOnStack"
+in
+#summation
++ )
+#check if the mathmatical operatin is + (true we have an operation) do sum else exit the program 
+if [ "$mathOperation" == true ] 
+then
+echo "Stack Before: ${stack[@]}" # print stack before
+sum=$(expr ${stack[-3]} + ${stack[-4]}) # summation the last two integer before the operation 
+unset stack[-1] # pop e
+unset stack[-1] # pop operation 
+unset stack[-1] # pop the first integer before operation
+unset stack[-1] #pop the second integer before operation
+stack+=($sum) #push the result of sum 
+echo "Stack After: ${stack[@]}" # print stack after execution
+else
+echo "you can't do an operation with none integers inputs"
+exit 0
+fi
+;;
+
+\& )
+#check if the mathmatical operatin is & (true we have an operation) do and else exit the program 
+if [ "$mathOperation" == true ]
+then
+echo "Stack Before: ${stack[@]}" #stack before
+and=$(( ${stack[-3]}&${stack[-4]} )) # AND the last two integer berore &
+unset stack[-1] # pop e
+unset stack[-1] # pop operation 
+unset stack[-1] # pop the first integer before operation
+unset stack[-1] #pop the second integer before operation
+stack+=($and) #push the result of AND (&)
+echo "Stack After: ${stack[@]}" # print stack after execution
+else
+echo "you can't do an operation with none integers inputs"
+exit 0
+fi
+;;
+
+\| )
+#check if the mathmatical operatin is | (true we have an operation) do OR else exit the program 
+if [ "$mathOperation" == true ]
+then
+echo "Stack Before: ${stack[@]}" #stack before
+or=$(( ${stack[-3]}|${stack[-4]} )) # OR the last two integer berore &
+unset stack[-1] # pop e
+unset stack[-1] # pop operation 
+unset stack[-1] # pop the first integer before operation
+unset stack[-1] #pop the second integer before operation
+stack+=($or) #push the result of or (|)
+echo "Stack After: ${stack[@]}" # print stack after execution
+else
+echo "you can't do an operation with none integers inputs"
+exit 0
+fi
+;;
+
+\^ )
+#check if the mathmatical operatin is ^ (true we have an operation) do XOR else exit the program 
+if [ "$mathOperation" == true ]
+then
+echo "Stack Before: ${stack[@]}" # print stack before
+xor=$(( ${stack[-3]}^${stack[-4]} )) # XOR the last two integer berore &
+unset stack[-1] # pop e
+unset stack[-1] # pop operation 
+unset stack[-1] # pop the first integer before operation
+unset stack[-1] # pop the second integer before operation
+stack+=($xor) # push the result of xor (^)
+echo "Stack After: ${stack[@]}" # print stack after execution
+else
+echo "you can't do an operation with none integers inputs"
+exit 0
+fi
+
+;;
+
+s )
+#check if the operation is s to make swapp
+if [ $numarray -lt 3 ]
+then
+unset stack[-1] # pop e 
+unset stack[-1] #pop operation s 
+echo "Please enter more integres in the file and try again"
+exit 0
+else
+echo "Stack Before: ${stack[@]}" # print stack before
+lastElement=${stack[-3]} # save the last second element befor operation s ethir it number or operation
+stack[-3]=${stack[-4]} # swapp the last two elements make last element be the before last 
+stack[-4]=$lastElement # make the last elemnet we saved be the before last 
+unset stack[-1] # pop e
+unset stack[-1] # pop s
+echo "Stack After: ${stack[@]}" # print stack after execution
+fi
+;;
+d )
+#check if the operation is d to make delete 
+# twice since we push the d too
+echo "Stack Before: ${stack[@]}" #stack before
+unset stack[-1] # pop e
+unset stack[-1] # pop d
+unset stack[-1] # pop the last element on the stack 
+echo "Stack After: ${stack[@]}" # print stack after execution
+;;
+* ) 
+echo "Stack Before: ${stack[@]}" #stack before
+unset stack[-1] # pop e
+echo "Stack After: ${stack[@]}" # print stack after execution
+;;
+esac
+echo "<-------------------------------------------------------->"
+;;
+p ) 
+stack+=($input) # push p 
+echo "Stack: ${stack[@]}" # print the content of stack
+unset stack[-1];; # pop p
+d ) stack+=($input) # push d 
+;;
+x ) stack+=($input) # push x
+echo "Stack: ${stack[@]}" # print the content of stack 
+exit 1 # exit
+;;
+\& ) stack+=($input);; # push &
+\| ) stack+=($input);; # push |
+\^ ) stack+=($input);; # push ^
+* ) if [[ "$input" =~ ^[0-9]+$ ]] # check if the number is unsigned integer
+then
+stack+=($input) # push 
+else
+echo "wrong operation read from the file or worng integer "
+exit 0
+fi;;
+esac
+done
+
+exit 1
+fi
+
+stack=() # defient the array (stack)
+#############################################################################################
+
+count=0 # variable for tests in if statment 
+
+echo "Enter and elements or integer to the stack" 
+printf "> " # print > every time 
+while read input # while we read from terminal 
+do
+# translate from upper to lower for  some input of operation like s, d , u ,x 
+input=`echo $input | tr [A-Z] [a-z]`
+
+# to check while we use the operation u 
+if [ "$input" = 'u' ]
+then
+count=$((count+1)) # counter ++
+
+#to check when we enter more that one u sice we need one depends on e before it
+if [ "$count" -gt 1 ] 
+then
+printf "> " 
+continue
+fi
+else
+count=0 
+fi
+case "$input"
+in
++ ) stack+=($input);; # push + to the stack
+s ) stack+=($input);; # push s to the stack 
+
+# cases when we enter the e 
+e )
+
+numarray=${#stack[@]} #number of elemnt in satck
+
+# check if the element on the stack is 1 or less stack empty
+if [ $numarray -lt 1 ]
+then
+echo " Can't execute the stack is empty"
+printf "> " 
+continue
+fi
+#check if we entered more than 3 elements to be able to do any operation
+if [ $numarray -lt 3 ] 
+then
+mathOperation=false # boolean for check 
+else
+# check if we read integer in the last two input before the operation if integer or not
+if [[ ${stack[-3]} =~ ^[0-9]+$ ]]
+then
+if [[ ${stack[-2]} =~ ^[0-9]+$ ]]
+then
+saveOperation=(${stack[-3]} ${stack[-2]}) # save the last two element before 
+mathOperation=true # boolean for check 
+else
+mathOperation=false # boolean for check 
+fi
+else
+mathOperation=false # boolean for check 
+fi
+saveOperation=(${stack[-3]} ${stack[-2]}) # save the last two element before 
+fi 
+lastIndexOnStack=${stack[-1]} # save the last index from the satck 
+stack+=($input) # push the input we entered 
+
+# cases for the last index we saved to do the operations 
+case "$lastIndexOnStack"
+in
+
++ )
+#check if the mathmatical operatin is + (true we have an operation) do sum else exit the program 
+if [ "$mathOperation" == true ]
+then
+echo "Stack Before: ${stack[@]}" # print stack before
+sum=$(expr ${stack[-3]} + ${stack[-4]}) # summation the last two integer before opertaion 
+unset stack[-1] # pop e
+unset stack[-1] # pop +
+unset stack[-1] # pop the first integer before operation 
+unset stack[-1] # pop the second integer before operation 
+stack+=($sum) # push the result of sum into stack 
+echo "Stack After: ${stack[@]}" # print stack after execution 
+else
+echo "you can't do an operation with none integers inputs"
+printf "> "
+continue
+fi
+;;
+
+\& )
+#check if the mathmatical operatin is & (true we have an operation) do AND else exit the program
+if [ "$mathOperation" == true ]
+then
+echo "Stack Before: ${stack[@]}" # print stack before
+and=$(( ${stack[-3]}&${stack[-4]} )) # AND the last two integer before opertaion
+unset stack[-1] # pop e
+unset stack[-1] # pop &
+unset stack[-1] # pop the first integer before operation 
+unset stack[-1] # pop the second integer before operation 
+stack+=($and) # push the result of AND into stack 
+echo "Stack After: ${stack[@]}" # print after stack 
+else
+echo "you can't do an operation with none integers inputs"
+printf "> " 
+continue
+fi
+;;
+
+\| )
+#check if the mathmatical operatin is | (true we have an operation) do OR else exit the program
+if [ "$mathOperation" == true ]
+then
+echo "Stack Before: ${stack[@]}" # print stack before
+or=$(( ${stack[-3]}|${stack[-4]} )) # OR the last two integer before opertaion
+unset stack[-1] # pop e
+unset stack[-1] # pop |
+unset stack[-1] # pop the first integer before operation 
+unset stack[-1] # pop the second integer before operation 
+stack+=($or) #push the result of or into stack 
+echo "Stack After: ${stack[@]}" # print stack 
+else
+echo "you can't do an operation with none integers inputs"
+printf "> "
+continue
+fi
+;;
+
+\^ )
+#check if the mathmatical operatin is ^ (true we have an operation) do XOR else exit the program
+if [ "$mathOperation" == true ]
+then
+echo "Stack Before: ${stack[@]}" #stack before
+xor=$(( ${stack[-3]}^${stack[-4]} )) # XOR the last two integer before opertaion
+unset stack[-1] # pop e
+unset stack[-1] # pop ^
+unset stack[-1] # pop the first integer before operation 
+unset stack[-1] # pop the second integer before operation 
+stack+=($xor) #push the result of stack 
+echo "Stack After: ${stack[@]}" # print stack 
+else
+echo "you can't do an operation with none integers inputs"
+printf "> "
+continue
+fi
+;;
+s )
+#check if the operation is s to make swapp
+if [ $numarray -lt 3 ]
+then
+unset stack[-1] # pop e
+unset stack[-1] # pop s
+echo "Please enter more integres"
+printf "> "
+continue
+else
+echo "Stack Before: ${stack[@]}" #stack before
+lastElement=${stack[-3]} # save the last second element befor operation s ethir it number or
+stack[-3]=${stack[-4]} # swapp the last two elements make last element be the before last 
+stack[-4]=$lastElement # make the last elemnet we saved be the before last 
+unset stack[-1] # pop e
+unset stack[-1] # pop s
+echo "Stack After: ${stack[@]}" # print after swapp
+fi
+;;
+d )
+#check if the operation is d to make delete 
+echo "Stack Before: ${stack[@]}" #stack before
+unset stack[-1] # pop e
+unset stack[-1] # pop d
+lastIndexOnStack=${stack[-1]}
+unset stack[-1] # pop element 
+echo "Stack After: ${stack[@]}" #print after delete
+;;
+* )
+echo "Stack Before: ${stack[@]}" #stack before 
+unset stack[-1] ;; # remove e from stack 
+esac
+;;
+
+
+p ) 
+lastIndexOnStack="" 
+stack+=($input) # push p to the stack  
+echo "Stack: ${stack[@]}" # print the stack 
+unset stack[-1] # pop p 
+;;
+d ) stack+=($input) # push d
+;;
+x ) stack+=($input) # push x 
+echo "Stack: ${stack[@]}" # print the stack 
+exit 1
+;;
+
+# cases when we use UNDO 
+u )
+echo "Stack Before undo: ${stack[@]}" # stack before
+case "$lastIndexOnStack" 
+in
++ )
+unset stack[-1] # pop result
+stack+=(${saveOperation[0]}) #push the first element to the array saveOperation 
+stack+=(${saveOperation[1]}) #push the second element 
+stack+=($lastIndexOnStack) # push the last index 
+echo "Stack After undo : ${stack[@]}" #print stack after undo 
+;;
+\& )
+unset stack[-1] # pop result  
+stack+=(${saveOperation[0]}) #push the first element to the array saveOperation 
+stack+=(${saveOperation[1]}) #push the second element 
+stack+=($lastIndexOnStack) # push the last index 
+echo "Stack After: ${stack[@]}" #print stack after undo 
+;;
+\^ )
+unset stack[-1] # pop result
+stack+=(${saveOperation[0]}) #push the first element to the array saveOperation 
+stack+=(${saveOperation[1]}) #push the second element 
+stack+=($lastIndexOnStack) # push the last index 
+echo "Stack After: ${stack[@]}" #print stack after undo 
+;;
+\| )
+unset stack[-1] # pop result
+stack+=(${saveOperation[0]}) #push the first element to the array saveOperation 
+stack+=(${saveOperation[1]}) #push the second element 
+stack+=($lastIndexOnStack) # push the last index 
+echo "Stack After: ${stack[@]}" #print stack after undo 
+;;
+s )
+lastElement=${stack[-1]} # save the last index (element) in temp varaible  
+stack[-1]=${stack[-2]}  # swapp the last two elements make last element be the before last 
+stack[-2]=$lastElement # make the last elemnet we saved be the before last 
+echo "Stack After: ${stack[@]}" #print stack after undo 
+;;
+d )
+stack+=($lastIndexOnStack)
+echo "Stack After: ${stack[@]}" #print stack after undo 
+;;
+* )
+stack+=($lastIndexOnStack)
+echo "Stack After: ${stack[@]}";; #print stack after undo 
+esac
+;; ## end of excution
+
+\& ) stack+=($input);; #push &
+\| ) stack+=($input);; #push |
+\^ ) stack+=($input);; #push ^
+* ) if [[ "$input" =~ ^[0-9]+$ ]]
+then
+stack+=($input) #push the input read 
+else
+echo "you should enter an intger or Right operation:"
+fi;;
+esac
+printf "> "
+done
