@@ -1,4 +1,4 @@
-# Shell-Scripting-Stack-interpreter
+# Shell-Scripting/bash-Stack-interpreter
 
 You are required to build an interpreter for a machine that has a single stack. The machine is primitive
 and thus it understands simple commands. Consider the following very primitive language for
